@@ -35,12 +35,12 @@ def load_vgg(sess, vgg_path):
     
     tf.saved_model.loader.load(sess, [vgg_tag], vgg_path)
     graph = tf.get_default_graph()
-    input = graph.get_tensor_by_name(vgg_input_tensor_name)
+    input_image = graph.get_tensor_by_name(vgg_input_tensor_name)
     keep_prob = graph.get_tensor_by_name(vgg_keep_prob_tensor_name)
     layer3 = graph.get_tensor_by_name(vgg_layer3_out_tensor_name)
     layer4 = graph.get_tensor_by_name(vgg_layer4_out_tensor_name)
     layer7 = graph.get_tensor_by_name(vgg_layer7_out_tensor_name)
-    return input, keep_prob, layer3, layer4, layer7
+    return input_image, keep_prob, layer3, layer4, layer7
 tests.test_load_vgg(load_vgg, tf)
 
 
@@ -80,7 +80,10 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     :return: Tuple of (logits, train_op, cross_entropy_loss)
     """
     # TODO: Implement function
-    return None, None, None
+    logits = tf.reshape(nn_last_layer, (-1, num_classes))
+    cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(nn_last_layer, correct_label))
+    train_op = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy_loss)
+    return logits, train_op, cross_entropy_loss
 tests.test_optimize(optimize)
 
 
@@ -100,7 +103,17 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     :param learning_rate: TF Placeholder for learning rate
     """
     # TODO: Implement function
-    pass
+    for epochs in range(epochs):
+        for images, labels in get_batches_fn(batch_size):
+            _, loss = sess.run(
+                [train_op, cross_entropy_loss],
+                feed_dict={
+                    input_image: images,
+                    correct_label: labels,
+                    keep_prob: 0.6,
+                    learning_rate: 0.0005
+                    })
+            print("loss: {}".format(loss))
 tests.test_train_nn(train_nn)
 
 
@@ -128,8 +141,15 @@ def run():
         #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
 
         # TODO: Build NN using load_vgg, layers, and optimize function
-
+        input_image, keep_prob, layer3, layer4, layer7 = load_vgg(sess, vgg_path)
+        output = layers(layer3, layer4, layer7, num_classes)
+        logits, train_op, cross_entropy_loss = optimize(output)
         # TODO: Train NN using the train_nn function
+        learning_rate = tf.placeholder(tf.float32)
+        correct_label = tf.placeholder(tf.float32, [None, None, None, num_classes])
+        epochs = 1
+        batch_size = 50
+        train_nn(sess,epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, image_input, correct_label, keep_prob, learning_rate)
 
         # TODO: Save inference data using helper.save_inference_samples
         #  helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
