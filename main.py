@@ -47,7 +47,19 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :return: The Tensor for the last layer of output
     """
     # TODO: Implement function
-    return None
+    conv1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, padding='same',
+            kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    input = tf.layers.conv2d_transpose(conv1x1, num_classes, 4, strides=(2,2), padding='same',
+            kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    input = tf.add(input, vgg_layer4_out)
+
+    input = tf.layers.conv2d_transpose(input, num_classes, 4, strides=(2,2), padding='same',
+            kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    input = tf.add(input, vgg_layer3_out)
+    output = tf.layers.conv2d_transpose(input, num_classes, 16, strides=(8,8), padding='same',
+            kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+
+    return output
 tests.test_layers(layers)
 
 
