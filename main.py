@@ -113,6 +113,9 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     :param learning_rate: TF Placeholder for learning rate
     """
     # TODO: Implement function
+    init_op = tf.global_variables_initializer()
+    sess.run(init_op)
+
     for epochs in range(epochs):
         for images, labels in get_batches_fn(batch_size):
             _, loss = sess.run(
@@ -157,15 +160,13 @@ def run():
         learning_rate = tf.placeholder(tf.float32)
         correct_label = tf.placeholder(tf.float32, [None, None, None, num_classes])
         logits, train_op, cross_entropy_loss = optimize(output, correct_label, learning_rate, num_classes)
-        init_op = tf.global_variables_initializer()
-        sess.run(init_op)
 
-        epochs = 1
+        epochs = 10
         batch_size = 50
         train_nn(sess,epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image, correct_label, keep_prob, learning_rate)
 
         # TODO: Save inference data using helper.save_inference_samples
-        #  helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
+        helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
 
         # OPTIONAL: Apply the trained model to a video
 
