@@ -54,15 +54,22 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :return: The Tensor for the last layer of output
     """
     # TODO: Implement function
-    conv1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, padding='same',
+    l7_conv1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, padding='same',
             kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
-    input = tf.layers.conv2d_transpose(conv1x1, num_classes, 4, strides=(2,2), padding='same',
+    l4_conv1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, padding='same',
             kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
-    input = tf.add(input, vgg_layer4_out)
+    l3_conv1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, padding='same',
+            kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    input = tf.layers.conv2d_transpose(l7_conv1x1, num_classes, 4, strides=(2,2), padding='same',
+            kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+
+    input = tf.add(input, l4_conv1x1)
 
     input = tf.layers.conv2d_transpose(input, num_classes, 4, strides=(2,2), padding='same',
             kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
-    input = tf.add(input, vgg_layer3_out)
+
+    input = tf.add(input, l3_conv1x1)
+
     output = tf.layers.conv2d_transpose(input, num_classes, 16, strides=(8,8), padding='same',
             kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
 
@@ -81,7 +88,10 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     """
     # TODO: Implement function
     logits = tf.reshape(nn_last_layer, (-1, num_classes))
-    cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(nn_last_layer, correct_label))
+    cross_entropy_loss = tf.reduce_mean(
+        tf.nn.softmax_cross_entropy_with_logits(
+            logits=nn_last_layer, labels=correct_label)
+            )
     train_op = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy_loss)
     return logits, train_op, cross_entropy_loss
 tests.test_optimize(optimize)
@@ -143,13 +153,16 @@ def run():
         # TODO: Build NN using load_vgg, layers, and optimize function
         input_image, keep_prob, layer3, layer4, layer7 = load_vgg(sess, vgg_path)
         output = layers(layer3, layer4, layer7, num_classes)
-        logits, train_op, cross_entropy_loss = optimize(output)
         # TODO: Train NN using the train_nn function
         learning_rate = tf.placeholder(tf.float32)
         correct_label = tf.placeholder(tf.float32, [None, None, None, num_classes])
+        logits, train_op, cross_entropy_loss = optimize(output, correct_label, learning_rate, num_classes)
+        init_op = tf.global_variables_initializer()
+        sess.run(init_op)
+
         epochs = 1
         batch_size = 50
-        train_nn(sess,epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, image_input, correct_label, keep_prob, learning_rate)
+        train_nn(sess,epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image, correct_label, keep_prob, learning_rate)
 
         # TODO: Save inference data using helper.save_inference_samples
         #  helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
