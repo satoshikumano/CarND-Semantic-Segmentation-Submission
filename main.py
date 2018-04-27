@@ -134,7 +134,7 @@ def run():
     num_classes = 2
     image_shape = (160, 576)
     data_dir = './data'
-    runs_dir = './runs'
+    runs_dir = './output'
     tests.test_for_kitti_dataset(data_dir)
 
     # Download pretrained vgg model
