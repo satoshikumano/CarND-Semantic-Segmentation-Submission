@@ -126,7 +126,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                     keep_prob: 0.6,
                     learning_rate: 0.0005
                     })
-            print("loss: {}".format(loss))
+            print('{{"metric": "loss", "value": {}}}'.format(loss))
 tests.test_train_nn(train_nn)
 
 
