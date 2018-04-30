@@ -116,7 +116,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     init_op = tf.global_variables_initializer()
     sess.run(init_op)
 
-    for epochs in range(epochs):
+    for epoch in range(epochs):
         for images, labels in get_batches_fn(batch_size):
             _, loss = sess.run(
                 [train_op, cross_entropy_loss],
@@ -126,7 +126,9 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                     keep_prob: 0.6,
                     learning_rate: 0.0005
                     })
-            print('{{"metric": "loss", "value": {}}}'.format(loss))
+            if loss < 1:
+                print ('epoch {}'.format(epoch))
+                print('{{"metric": "loss", "value": {}}}'.format(loss))
 tests.test_train_nn(train_nn)
 
 
@@ -161,7 +163,7 @@ def run():
         correct_label = tf.placeholder(tf.float32, [None, None, None, num_classes])
         logits, train_op, cross_entropy_loss = optimize(output, correct_label, learning_rate, num_classes)
 
-        epochs = 100
+        epochs = 200
         batch_size = 50
         train_nn(sess,epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image, correct_label, keep_prob, learning_rate)
 
