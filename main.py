@@ -161,7 +161,7 @@ def run():
         correct_label = tf.placeholder(tf.float32, [None, None, None, num_classes])
         logits, train_op, cross_entropy_loss = optimize(output, correct_label, learning_rate, num_classes)
 
-        epochs = 30
+        epochs = 100
         batch_size = 50
         train_nn(sess,epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image, correct_label, keep_prob, learning_rate)
 
