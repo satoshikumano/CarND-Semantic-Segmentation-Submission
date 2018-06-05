@@ -87,7 +87,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     :return: Tuple of (logits, train_op, cross_entropy_loss)
     """
     # TODO: Implement function
-    logits = tf.reshape(nn_last_layer, (-1, num_classes))
+    logits = tf.reshape(nn_last_layer, (-1, num_classes), name='logits')
     cross_entropy_loss = tf.reduce_mean(
         tf.nn.softmax_cross_entropy_with_logits(
             logits=nn_last_layer, labels=correct_label)
@@ -170,6 +170,9 @@ def run():
         # TODO: Save inference data using helper.save_inference_samples
         helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
 
+        # Save model
+        saver = tf.train.Saver(max_to_keep=1)
+        saver.save(sess, "{}/model.ckpt".format(runs_dir))
         # OPTIONAL: Apply the trained model to a video
 
 
