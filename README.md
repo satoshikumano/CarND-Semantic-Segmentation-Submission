@@ -1,5 +1,7 @@
 # Semantic Segmentation Project.
 
+Goal: Identify the segmentation of the road and other parts in the picture.
+
 ## Training result
 
 Loss was 0.0534
